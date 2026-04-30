@@ -1,123 +1,315 @@
-🚘 VEHICLE RENTAL SYSTEM
-📌 Curated by UMAIR IMRAN
+<div align="center">
 
-📝 Project Overview
-The Vehicle Rental System is a vibrant and user-friendly Command Line Interface (CLI) application designed to simulate a real-world vehicle rental business. Built in C++, this system allows users to view, rent, and return different types of vehicles — with a colorful and emoji-enhanced interface that improves user experience.
+```
+╔══════════════════════════════════════════════════════════════════╗
+║          V  E  L  O  C  E  —  Vehicle Rental Management         ║
+║                   Enterprise Edition  ·  v2.0.0                  ║
+╚══════════════════════════════════════════════════════════════════╝
+```
 
-🌟 Key Features
-🔹 1. View Vehicles
-Users can view all available vehicle types such as Cars 🚗, Bikes 🏍️, SUVs 🚙, Buses 🚌, Trucks 🚛, Vans 🚐, and Rickshaws 🛺.
+**A production-grade, terminal-based Vehicle Rental Management System**  
+built with modern **C++17** — featuring a full booking lifecycle, dynamic billing engine,  
+customer registry, insurance tiers, and a rich ANSI-rendered UI.
 
-Each type includes seven unique models, each with:
+[![C++17](https://img.shields.io/badge/C%2B%2B-17-blue?style=flat-square&logo=cplusplus)](https://en.cppreference.com/w/cpp/17)
+[![Build](https://img.shields.io/badge/build-passing-brightgreen?style=flat-square)]()
+[![License](https://img.shields.io/badge/license-MIT-orange?style=flat-square)]()
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey?style=flat-square)]()
 
-A model name
+</div>
 
-A relevant emoji/sticker 🐯, 🦄, 🐘 etc.
+---
 
-A color code for visual identity
+## Table of Contents
 
-A daily rent rate (e.g., Rs. 5000/day)
+- [Overview](#overview)
+- [Features](#features)
+- [System Architecture](#system-architecture)
+- [Fleet Catalog](#fleet-catalog)
+- [Getting Started](#getting-started)
+- [Usage Guide](#usage-guide)
+- [Billing Engine](#billing-engine)
+- [Booking Lifecycle](#booking-lifecycle)
+- [Project Structure](#project-structure)
+- [Design Patterns & C++17 Features](#design-patterns--c17-features)
+- [Contributing](#contributing)
 
-🔹 2. Rent a Vehicle
-Users can choose a vehicle type and select a specific model.
+---
 
-They’re prompted to enter the number of days they wish to rent.
+## Overview
 
-A "Point to Ponder" 🧠 warning appears:
+**Veloce** is a fully self-contained, single-file C++17 application that simulates a professional vehicle rental management system. It is designed to demonstrate enterprise-level software architecture in a terminal environment — complete with ANSI color rendering, structured exception handling, domain-driven design, and a multi-stage billing engine.
 
-🧠 Point to Ponder: If you break any part of the vehicle, a Rs. 2200 challan will be applied!
+This project was written as a refactor/upgrade from a beginner prototype to a production-quality codebase. It is ideal as a portfolio piece, a learning reference, or a foundation for a real-world rental management CLI tool.
 
-Final rent is calculated and displayed with color highlights.
+---
 
-Helps simulate real-world decision-making in rentals.
+## Features
 
-🔹 3. Return Vehicle
-When returning the vehicle, the system asks if it was broken/damaged.
+### Core Functionality
+- 🚗  **Vehicle Catalog** — 4 vehicle types (Car, Bike, SUV, Van) with 14+ models across Economy, Sport, Luxury, and Hypercar tiers
+- 👤  **Customer Registry** — Register customers with full name, phone, and CNIC/passport; each customer gets a unique `CUS-XXXX` ID
+- 📋  **Booking Management** — Create, list, search, and return bookings; each booking has a unique `VRS-XXXXX` ID
+- 🔄  **Full Booking Lifecycle** — `PENDING → ACTIVE → RETURNED / CANCELLED` state machine
+- 🧾  **Professional Invoice** — Itemized final invoice with base rent, insurance, late fees, damage charges, and deposit deduction
+- 📊  **Analytics Dashboard** — Live stats: total customers, bookings, lifetime revenue, fleet overview
 
-If "Yes", an additional challan (fine) is applied:
+### Billing Engine
+- 💰  **Base Rent** — Daily rate × actual days used
+- 🛡   **Insurance Tiers** — None / Basic (Rs. 200/day) / Premium (Rs. 500/day)
+- ⚠️  **Damage Challan** — Flat penalty per vehicle type if returned damaged
+- ⏱   **Late Return Fee** — Per-day overdue charge when actual days exceed planned days
+- 🏦  **Security Deposit** — Collected at booking, deducted from final invoice
 
-Rs. 2200 for cars 🚗
+### Terminal UI
+- ANSI 256-color rendering with `╔═╗` box frames and `╠═╣` dividers
+- Color-coded status badges: ACTIVE (cyan), RETURNED (green), CANCELLED (red)
+- Section headers, key-value tables, and formatted itemized invoices
+- Input validation with clear, styled error prompts
+- ISO-8601 timestamps on all records
 
-Custom challans (e.g., Rs. 1800 for bikes 🏍️, Rs. 2500 for buses 🚌)
+---
 
-Final cost is calculated with the penalty and shown to the user.
+## System Architecture
 
-🔹 4. Colorful & Emoji-Based Output
-Uses ANSI escape codes for colored text (e.g., \033[31m for red).
+```
+VehicleRentalSystem.cpp
+│
+├── SECTION 1  ── ANSI::           Terminal color/style renderer
+├── SECTION 2  ── VRS::            Custom exception hierarchy
+├── SECTION 3  ── VRS::            Domain models (Booking, Customer, VehicleType, etc.)
+├── SECTION 4  ── VRS::Utils::     Input handling, formatting, ID generation
+├── SECTION 5  ── VRS::UI::        Terminal layout primitives
+├── SECTION 6  ── VRS::            VehicleCatalog (static fleet database)
+├── SECTION 7  ── VRS::            CustomerRegistry
+├── SECTION 8  ── VRS::            BookingEngine (create, return, list, lookup)
+├── SECTION 9  ── VRS::            Dashboard (analytics)
+├── SECTION 10 ── VRS::            VeloceApp (main controller / event loop)
+└── SECTION 11 ── main()           Entry point with top-level exception guard
+```
 
-Models and vehicle types include cute and relevant emojis.
+### Class Relationships
 
-Adds visual appeal and increases usability — ideal for students and beginners.
+```
+VeloceApp
+ ├── VehicleCatalog       (immutable fleet data)
+ ├── CustomerRegistry     (owns Customer map)
+ └── BookingEngine        (owns Booking map, refs VehicleCatalog)
+      └── Booking          (state machine + billing logic)
+           └── InsuranceTier, BookingStatus  (enums)
+```
 
-🧠 Point to Ponder System
-A proactive warning system that simulates real-life vehicle care.
+---
 
-Highlights the importance of responsibility during rentals.
+## Fleet Catalog
 
-Encourages ethical return behavior and adds realism to the simulation.
+| Type | Models | Damage Challan | Late Fee/Day |
+|------|--------|---------------|-------------|
+| 🚗 Car  | Lamborghini Huracán, Ferrari 488, BMW 5 Series, Honda Civic, Toyota Corolla | Rs. 8,000  | Rs. 1,500 |
+| 🏍 Bike | Yamaha R1, Honda CG125, Ducati Panigale V4, Harley-Davidson Iron 883 | Rs. 5,000  | Rs. 800   |
+| 🚙 SUV  | Toyota Fortuner, Kia Sportage, Audi Q7, Land Cruiser V8 | Rs. 12,000 | Rs. 2,000 |
+| 🚐 Van  | Toyota HiAce, Ford Transit, Mercedes Vito | Rs. 10,000 | Rs. 2,500 |
 
-🏗️ System Architecture
-Uses struct to define:
+---
 
-Model: Holds model info, emoji, color, and rent
+## Getting Started
 
-VehicleType: Holds vehicle type name, emoji, color, and its list of models
+### Prerequisites
 
-Stores all data in a vector<VehicleType> called vehicleDB
+- **GCC** 7+ or **Clang** 5+ with C++17 support
+- A terminal emulator with ANSI color support (Linux/macOS default terminals, Windows Terminal, or VS Code terminal)
 
-Main menu is loop-based using a while(true) construct
+### Compile
 
-💻 Technologies Used
-Language: C++
+```bash
+g++ -std=c++17 -O2 -Wall -Wextra -o veloce VehicleRentalSystem.cpp
+```
 
-Concepts: Structs, Vectors, Input/Output, Conditional Logic
+> **Clang alternative:**
+> ```bash
+> clang++ -std=c++17 -O2 -o veloce VehicleRentalSystem.cpp
+> ```
 
-UI Enhancements: ANSI Color Codes, Emojis, Formatted Output (iomanip)
+> **Windows (MinGW):**
+> ```bash
+> g++ -std=c++17 -O2 -o veloce.exe VehicleRentalSystem.cpp
+> ```
 
-✅ Why This System is Unique?
-Not just a dry C++ console program — it’s interactive, colorful, and expressive
+### Run
 
-Designed to look human-made, not AI-generated
+```bash
+./veloce
+```
 
-Suitable for:
+---
 
-C++ assignments
+## Usage Guide
 
-Fun projects
+### Main Menu
 
-Teaching tools for object-oriented and structured programming
+```
+  [1]  🚗  New Rental Booking
+  [2]  🔄  Process Vehicle Return
+  [3]  📋  View All Bookings
+  [4]  🔍  Lookup Booking by ID
+  [5]  👤  Register New Customer
+  [6]  📊  Analytics Dashboard
+  [7]  🚪  Exit System
+```
 
-📌 Sample Console Output
-markdown
-Copy
-Edit
-🚘 VEHICLE RENTAL SYSTEM
-📌 Curated by UMAIR IMRAN
+### Creating a Booking
 
-🔸 MAIN MENU
-1. View Vehicles
-2. Rent a Vehicle
-3. Return a Vehicle
-4. Exit
+1. Select **[1] New Rental Booking**
+2. Register a new customer or enter an existing Customer ID
+3. Choose a vehicle type → model → rental duration
+4. Select an insurance tier (None / Basic / Premium)
+5. Review the booking summary and confirm
+6. Your unique Booking ID (e.g. `VRS-47821`) is issued
 
-➡️  Enter your choice: 2
+### Returning a Vehicle
 
-🌟 Available Vehicle Types:
-1. 🚗 Car
-2. 🏍️ Bike
-...
+1. Select **[2] Process Vehicle Return**
+2. Enter the Booking ID (e.g. `VRS-47821`)
+3. Enter actual days used
+4. Indicate if the vehicle was damaged
+5. A full itemized invoice is printed with the net amount due
 
-🧠 Point to Ponder: If you break any part of the vehicle, a Rs. 2200 challan will be applied!
-...
-✅ Total Rent: Rs. 17200
-🧾 Future Enhancements (Optional)
-Admin panel with password for adding new vehicles
+### Booking ID Format
 
-Persistent file handling to store user rentals
+```
+VRS-XXXXX
+ │    └── 5-digit random numeric suffix
+ └──── System prefix
+```
 
-Receipt generation as a downloadable .txt file
+### Customer ID Format
 
-User login/registration system
+```
+CUS-XXXX
+ │    └── 4-digit random numeric suffix
+ └──── Customer prefix
+```
 
-Dynamic pricing (based on seasons or availability)
+---
 
+## Billing Engine
+
+The final invoice is computed as:
+
+```
+GROSS TOTAL  =  Base Rent
+             +  Insurance Cost
+             +  Damage Charge      (if applicable)
+             +  Late Return Fee    (if actual days > planned days)
+
+NET AMOUNT DUE  =  GROSS TOTAL  −  Security Deposit
+```
+
+### Insurance Tiers
+
+| Tier    | Daily Rate | Coverage          |
+|---------|-----------|-------------------|
+| None    | Rs. 0     | No coverage        |
+| Basic   | Rs. 200   | Liability only     |
+| Premium | Rs. 500   | Full comprehensive |
+
+### Late Return Fee Example
+
+| Vehicle | Planned | Actual | Overdue Days | Late Fee Rate | Penalty  |
+|---------|---------|--------|-------------|--------------|---------|
+| Fortuner | 5 days  | 8 days | 3 days       | Rs. 2,000/day | Rs. 6,000 |
+
+---
+
+## Booking Lifecycle
+
+```
+  [CREATE]
+     │
+     ▼
+  PENDING ──── user cancels ────► CANCELLED
+     │
+     │  confirmed
+     ▼
+  ACTIVE  ──── processReturn() ──► RETURNED
+                                       │
+                                       ▼
+                                  Invoice Generated
+```
+
+---
+
+## Project Structure
+
+```
+VehicleRentalSystem.cpp     Single-file application (~1,070 lines)
+README.md                   This file
+```
+
+> The entire system is intentionally kept as a single, self-contained `.cpp` file for portability and ease of submission/deployment. In a real production system, each section/class would be split into its own `.hpp`/`.cpp` pair.
+
+---
+
+## Design Patterns & C++17 Features
+
+### Design Patterns Used
+
+| Pattern    | Where Applied                                              |
+|------------|------------------------------------------------------------|
+| Factory    | `VehicleCatalog::build()` constructs the full fleet        |
+| Registry   | `CustomerRegistry` and `BookingEngine` as central stores   |
+| State      | `BookingStatus` enum drives the booking lifecycle          |
+| Strategy   | `InsuranceTier` selects cost strategy at billing time      |
+| Facade     | `VeloceApp` provides a single controller for all subsystems|
+
+### C++17 Features Used
+
+| Feature            | Usage                                               |
+|--------------------|-----------------------------------------------------|
+| `std::optional`    | `CustomerRegistry::find()` returns optional ref     |
+| `std::string_view` | Exception constructors and utility functions        |
+| `std::unordered_map` | O(1) average lookup for customers and bookings   |
+| Structured bindings| `for (const auto& [id, b] : bookings_)`             |
+| `constexpr`        | ANSI color codes as compile-time string constants   |
+| `std::chrono`      | ISO-8601 timestamp generation                       |
+| `std::mt19937`     | Mersenne Twister for unique ID generation           |
+| RAII               | All resources managed through stack/smart ownership |
+| Move semantics     | `std::move` on strings and structs during insertion |
+
+---
+
+## Exception Hierarchy
+
+```
+std::runtime_error
+ └── VRSException
+      ├── InvalidInputException          — bad user input / out-of-range index
+      ├── BookingNotFoundException       — unknown booking ID queried
+      └── VehicleUnavailableException    — reserved for inventory extension
+```
+
+All exceptions are caught at the top-level `VeloceApp::run()` event loop, printed with a styled error message, and the system recovers gracefully without crashing.
+
+---
+
+## Contributing
+
+Contributions, feature requests, and bug reports are welcome.
+
+Suggested enhancements for future versions:
+
+- [ ] Persist data to JSON / SQLite between sessions
+- [ ] Multi-user / staff role access control
+- [ ] Availability calendar (prevent double-booking)
+- [ ] Email/SMS receipt generation
+- [ ] Vehicle maintenance scheduling
+- [ ] Web frontend via a REST API wrapper
+
+---
+
+<div align="center">
+
+Built with ❤️ and modern C++17  
+*"Write code as if the next person to read it is a senior engineer on a bad day."*
+
+</div>
